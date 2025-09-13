@@ -35,4 +35,4 @@ cat http.txt | jq -r'select(."status-code" >= 400 and ."status-code" < 500)|.url
 echo -e "\n code 500\n"
 
 cat http.txt | jq -r 'select(."status-code" >= 500 and ."status-code" < 600)|.url'|tee 500.txt
-rm -rf sub.txt  all-sub.txt rdns.txt dnsgen.txt  part-* resume.cfg  http.txt 
+rm -rf  all-sub.txt rdns.txt dnsgen.txt  part-* resume.cfg  
