@@ -11,7 +11,7 @@ curl -s "https://crt.sh/json?q=$1" |tee|jq -r '.[].common_name' |sort -u |tee -a
 echo -e "\n===========================\n run dnsgen .... \n===========================\n"
 dnsgen=$(dnsgen sub.txt | tee dnsgen.txt)
 echo -e "\n===========================\n number of subdomains .... \n===========================\n"
-cat sub.txt dnsgen.txt |tee all-sub.txt
+cat sub.txt dnsgen.txt |sort -u|tee all-sub.txt
 cat all-sub.txt | wc -l
 split -d  -l 10000 all-sub.txt part- 
 echo -e "\n===========================\n prepare resolvers .... \n===========================\n"
@@ -25,11 +25,14 @@ cat live.txt| dnsx -ro -a  -r rdns.txt -silent|tee -a ip.txt
 echo -e "\n===========================\n run httpx .... \n===========================\n"
 http=$(cat live.txt |httpx-toolkit -json |tee http.txt) 
 echo -e "\n code 200\n"
-cat http.txt | jq -r 'select(."status-code" >= 200) | .url'|tee 200.txt
+cat http.txt | jq -r 'select(."status-code" >= 200 and ."status-code" < 300)|.url'|tee 200.txt
 echo -e "\n code 300\n"
-cat http.txt | jq -r 'select(."status-code" >= 300) | .url'|tee 300.txt
+cat http.txt |jq -r 'select(."status-code" >= 300 and ."status-code" < 400)|.url'|tee 300.txt
+
 echo -e "\n code 400\n"
-cat http.txt | jq -r 'select(."status-code" >= 400) | .url'|tee 400.txt
+
+cat http.txt | jq -r'select(."status-code" >= 400 and ."status-code" < 500)|.url'|tee 400.txt
 echo -e "\n code 500\n"
-cat http.txt | jq -r 'select(."status-code" >= 500) | .url'|tee 500.txt
+
+cat http.txt | jq -r 'select(."status-code" >= 500 and ."status-code" < 600)|.url'|tee 500.txt
 rm -rf sub.txt  all-sub.txt rdns.txt dnsgen.txt  part-* resume.cfg  http.txt 
